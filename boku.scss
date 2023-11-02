@@ -1,0 +1,46 @@
+/*-- scss:defaults --*/
+
+// fonts
+$presentation-font-smaller: 0.8;
+
+// colors
+$link-color: #4dac26 !default;
+
+/*-- scss:rules --*/
+.reveal a {
+    line-height: 1.2em;
+}
+
+.sectionhead {
+    font-size: 1em;
+    text-align: center;
+    color: $presentation-heading-color;
+    font-family: $presentation-heading-font;
+    background-color: $body-bg;
+    margin: 1px;
+    padding: 2px 2px 2px 2px;
+    width: 120px;
+    border-left: 10px solid;
+}
+
+.subtitle {
+  color: #4dac26 !important;
+}
+
+.highlight-green{
+  color: #4dac26 !important;
+}
+
+.reveal .slide-logo {
+  height: 100px !important;
+  width: 100px!important;
+  max-width: unset !important;
+  max-height: unset !important;
+}
+
+.v-center-container {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  height: 70%;
+}

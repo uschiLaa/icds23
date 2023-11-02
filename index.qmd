@@ -1,0 +1,346 @@
+---
+title: "Tour visualizations for the interpretation of machine learning models"
+subtitle: "**Ursula Laa** <br> University of Natural Resources and Life Sciences, Vienna <br> <font color='black'> based on work with Di Cook </font> "
+format:
+  revealjs:
+    theme: [default, 'boku.scss']
+    scrollable: true
+    slide-number: true
+    code-line-numbers: false
+    reference-location: document
+    preview-links: auto
+    logo: 'BOKU-logo.svg'
+    footer: "uschilaa.github.io/slides_cladag23"
+    # embed-resources: true
+    chalkboard:
+      buttons: false
+---
+
+## Outline
+
+::: columns
+::: {.column width="40%"}
+
+![](mulga.png)
+:::
+
+::: {.column width="60%"}
+
+This talk is based on the book **Interactively exploring high-dimensional data and models in R** that will appear in *The R Series* (Chapman & Hall/CRC).
+
+You can already read through the preliminary version [here](https://dicook.github.io/mulgar_book/)
+
+To follow the examples install the companion package `mulgar` 
+
+:::
+:::
+
+## Outline
+
+I will use two data examples:
+
+- `palmerpenguins` data as a simple example for demonstrating the methods: 4 numeric variables (bill length and depth, flipper length, body mass), classification of the three species
+- `sketches` data included in the `mulgar` package to illustrate the high-dimensional case: $28\times 28$ greyscale images of hand-drawn sketches from Google quickdraw, classification into the 6 different groups 
+
+## Visualizing penguins in a grand tour
+
+::: columns
+::: {.column width="50%"}
+
+<br>
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+library(tourr)
+library(palmerpenguins)
+
+penguins <- na.omit(penguins)
+animate_xy(penguins[,3:6],
+           col=penguins$species,
+           axes="bottomleft",
+           rescale = TRUE,
+           fps=15)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+
+render_gif(penguins[,3:6],
+           grand_tour(),
+           display_xy(
+           col=penguins$species,
+           axes="bottomleft"),
+           gif_file = "gif/penguins.gif",
+           rescale = TRUE,
+           frames = 100)
+```
+
+:::
+
+::: {.column width="50%"}
+
+![](gif/penguins.gif)
+
+:::
+:::
+
+## Sketches data
+
+Examples from `mulgar::sketches_train`
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+source("draw_sketches.R")
+```
+
+
+## Sketches data
+
+::: columns
+::: {.column width="50%"}
+
+<br>
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+library(mulgar)
+library(RColorBrewer)
+
+pal <- brewer.pal(6, "Dark2")
+col <- pal[as.numeric(
+  sketches_train$word)]
+
+sketches_pca <- prcomp(
+  sketches_train[,1:784])
+
+animate_slice(sketches_pca$x[,1:6],
+           col = col,
+           axes = "bottomleft",
+           rescale = TRUE,
+           v_rel = 0.001,
+           fps=15)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+
+render_gif(sketches_pca$x[,1:6],
+           grand_tour(),
+           display_slice(
+           col=col,
+           axes="bottomleft",
+           v_rel = 0.001,),
+           gif_file = "gif/sketches.gif",
+           rescale = TRUE,
+           frames = 100)
+```
+
+:::
+
+::: {.column width="50%"}
+
+![](gif/sketches.gif)
+
+:::
+:::
+
+## Visualizing predictions
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+
+# fitting the two models
+p_lda <- MASS::lda(species~., data=penguins[,c(1,3:6)],
+                   prior=c(1/3, 1/3, 1/3))
+p_tree <- rpart::rpart(species~., data=penguins[,c(1,3:6)])
+
+# using the classifly package to calculate predictions
+p_lda_boundaries <- classifly::explore(p_lda, penguins)
+p_tree_boundaries <- classifly::explore(p_tree, penguins)
+
+# selecting the subset of interest
+p_lda_boundaries <- as.data.frame(
+  p_lda_boundaries[p_lda_boundaries$.TYPE == "simulated",c(1:4,6)])
+p_tree_boundaries <- as.data.frame(
+  p_tree_boundaries[p_tree_boundaries$.TYPE == "simulated",c(1:4,6)])
+
+# example of how we would visualize it in a slice tour
+animate_slice(p_tree_boundaries[,1:4],
+              col=p_tree_boundaries[,5], v_rel=0.01,
+              rescale = TRUE, axes="bottomleft")
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+
+set.seed(20230329)
+b <- basis_random(4,2)
+pt1 <- save_history(penguins[,3:6], 
+                    max_bases = 100, 
+                    start = b)
+
+render_gif(p_lda_boundaries[,1:4],
+           planned_tour(pt1),
+           display_slice(
+           col=p_lda_boundaries[,5],
+           axes="bottomleft",
+           v_rel = 0.01,),
+           gif_file = "gif/p_lda.gif",
+           rescale = TRUE,
+           frames = 100)
+
+render_gif(p_tree_boundaries[,1:4],
+           planned_tour(pt1),
+           display_slice(
+           col=p_tree_boundaries[,5],
+           axes="bottomleft",
+           v_rel = 0.01,),
+           gif_file = "gif/p_tree.gif",
+           rescale = TRUE,
+           frames = 100)
+```
+
+## Visualizing predictions
+
+::: columns
+::: {.column width="50%"}
+
+**LDA**
+
+![](gif/p_lda.gif)
+
+:::
+
+::: {.column width="50%"}
+
+**Tree**
+
+![](gif/p_tree.gif)
+
+:::
+:::
+
+## Visualizing the votes matrix
+
+With a random forest we could also investigate the predictions in the same way. In addition we can visualize the **votes matrix** to understand confusion between classes and identify problematic observations.
+
+The vote matrix is **compositional** and can be visualized in the simplex, with three classes we get a **ternary diagram** that we can visualize in the plane. With more classes we can generalize this using the tour.
+
+We can use the two data examples to see both cases.
+
+## Visualizing the votes matrix
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+
+### sketches
+
+# reduce dimensionality by using the first 21 PCs
+sketches_pc <- as.data.frame(sketches_pca$x[,1:21])
+sketches_pc$word <- sketches_train$word
+
+# fitting random forest
+library(randomForest)
+sketches_rf <- randomForest(word~., data=sketches_pc, 
+                            mtry=5, ntree=2500, 
+                            importance=TRUE)
+
+# extracting the votes matrix
+sketches_rf_votes <- sketches_rf$votes %>%
+  as_tibble() %>%
+  mutate(word = sketches_train$word)
+
+proj <- t(geozoo::f_helmert(6)[-1,])
+s_rf_v_p <- as.matrix(sketches_rf_votes[,1:6]) %*% proj
+colnames(s_rf_v_p) <- c("x1", "x2", "x3", "x4", "x5")
+s_rf_v_p <- s_rf_v_p %>%
+  as.data.frame() %>%
+  mutate(word = sketches_train$word)
+
+simp <- geozoo::simplex(p=5)
+sp <- data.frame(simp$points)
+colnames(sp) <- c("x1", "x2", "x3", "x4", "x5")
+sp$word = ""
+s_rf_v_p_s <- bind_rows(sp, s_rf_v_p) %>%
+  mutate(word = factor(word))
+labels <- c("banana" , "boomerang", 
+                "cactus", "crab", "flip flops", "kangaroo",
+                rep("", 5998))
+
+render_gif(s_rf_v_p_s[,1:5], 
+           grand_tour(),
+           display_xy(
+           col = col, 
+           axes = "off", half_range = 0.8,
+           edges = as.matrix(simp$edges),
+           obs_labels = labels),
+           gif_file = "gif/votes.gif",
+           rescale = TRUE,
+           frames = 100
+)
+
+```
+
+::: columns
+::: {.column width="50%"}
+
+<br>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+#| fig-width: 4
+#| fig-height: 4
+
+library(randomForest)
+library(dplyr)
+library(palmerpenguins)
+library(colorspace)
+penguins <- na.omit(penguins)
+penguins_rf <- randomForest(species~.,
+                             data=penguins[,c(1,3:6)])
+library(geozoo)
+proj <- t(geozoo::f_helmert(3)[-1,])
+p_rf_v_p <- as.matrix(penguins_rf$votes) %*% proj
+colnames(p_rf_v_p) <- c("x1", "x2")
+p_rf_v_p <- p_rf_v_p %>%
+  as.data.frame() %>%
+  mutate(species = penguins$species)
+simp <- simplex(p=2)
+sp <- data.frame(cbind(simp$points), simp$points[c(2,3,1),])
+colnames(sp) <- c("x1", "x2", "x3", "x4")
+sp$species = sort(unique(penguins$species))
+library(ggthemes)
+ggplot() +
+  geom_segment(data=sp, aes(x=x1, y=x2, xend=x3, yend=x4)) +
+  geom_text(data=sp, aes(x=x1, y=x2, label=species),
+            nudge_x=c(-0.06, 0.07, 0),
+            nudge_y=c(0.05, 0.05, -0.05)) +
+  geom_point(data=p_rf_v_p, aes(x=x1, y=x2, colour=species), size=2, alpha=0.5) +
+  scale_color_discrete_divergingx(palette="Zissou 1") +
+  theme_map() +
+  theme(aspect.ratio=1, legend.position="none")
+```
+
+:::
+
+::: {.column width="50%"}
+
+![](gif/votes.gif)
+
+:::
+:::
+
+## SVM
+
+Exploring radial tour of separating hyperplane in penguins example 
+
+## SVM
+
+Sketches data to compare linear and radial SVM
+
+
+
+
+
+# Thank you!
+
+<br>
+
+This is work in progress, we are happy about your feedback!
+
+<br>
+
+
+
