@@ -10,7 +10,7 @@ format:
     reference-location: document
     preview-links: auto
     logo: 'BOKU-logo.svg'
-    footer: "uschilaa.github.io/slides_cladag23"
+    footer: "uschilaa.github.io/icds23"
     # embed-resources: true
     chalkboard:
       buttons: false
@@ -331,6 +331,13 @@ Exploring radial tour of separating hyperplane in penguins example
 Sketches data to compare linear and radial SVM
 
 
+## References
+
+book
+tourr
+slice tour
+classifly
+vote matrix paper
 
 
 
