@@ -542,15 +542,47 @@
 </section>
 <section id="svm" class="slide level2">
 <h2>SVM</h2>
-<p>Exploring radial tour of separating hyperplane in penguins example</p>
+<p>With support vector machines we can investigate the <strong>separating hyperplane</strong>. Here we will use the <strong>radial tour</strong> that is rotating a single variable in and out of the projection to understand its contribution to the separation.</p>
+<p>As a simple binary example we fit an SVM to predict if a Chinstrap penguin is male or female.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>chinstrap <span class="ot">&lt;-</span> penguins <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">"Chinstrap"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>species, <span class="sc">-</span>island, <span class="sc">-</span>year) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_if</span>(is.numeric, mulgar<span class="sc">:::</span>scale2)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>chinstrap_svm <span class="ot">&lt;-</span> e1071<span class="sc">::</span><span class="fu">svm</span>(sex<span class="sc">~</span>., <span class="at">data=</span>chinstrap, <span class="at">scale=</span><span class="cn">FALSE</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">kernel=</span><span class="st">"linear"</span>, <span class="at">probability=</span><span class="cn">TRUE</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>chinstrap_svm_e <span class="ot">&lt;-</span> classifly<span class="sc">::</span><span class="fu">explore</span>(chinstrap_svm, chinstrap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+
+</div>
 </section>
 <section id="svm-1" class="slide level2">
 <h2>SVM</h2>
-<p>Sketches data to compare linear and radial SVM</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>Bill length</p>
+<p><img data-src="gif/chinstrap_rad_bl.gif"></p>
+</div><div class="column" style="width:50%;">
+<p>Flipper length</p>
+<p><img data-src="gif/chinstrap_rad_fl.gif"></p>
+</div>
+</div>
+</section>
+<section id="svm-2" class="slide level2">
+<h2>SVM</h2>
+<p>Sketches data to compare linear and radial SVM - banana vs boomerang</p>
 </section>
 <section id="references" class="slide level2">
 <h2>References</h2>
-<p>book tourr slice tour classifly vote matrix paper</p>
+<ul>
+<li>book</li>
+<li>tourr</li>
+<li>slice tour</li>
+<li>classifly</li>
+<li>vote matrix paper</li>
+<li>mmtour (radial tour)</li>
+</ul>
 </section>
 <section id="thank-you" class="title-slide slide level1 center">
 <h1>Thank you!</h1>

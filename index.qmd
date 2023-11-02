@@ -324,20 +324,86 @@ ggplot() +
 
 ## SVM
 
-Exploring radial tour of separating hyperplane in penguins example 
+With support vector machines we can investigate the **separating hyperplane**. Here we will use the **radial tour** that is rotating a single variable in and out of the projection to understand its contribution to the separation.
+
+As a simple binary example we fit an SVM to predict if a Chinstrap penguin is male or female. 
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=TRUE}
+
+chinstrap <- penguins %>%
+  filter(species == "Chinstrap") %>%
+  select(-species, -island, -year) %>%
+  mutate_if(is.numeric, mulgar:::scale2)
+chinstrap_svm <- e1071::svm(sex~., data=chinstrap, scale=FALSE,
+                     kernel="linear", probability=TRUE)
+chinstrap_svm_e <- classifly::explore(chinstrap_svm, chinstrap)
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+set.seed(1022)
+prj1 <- mulgar::norm_vec(t(chinstrap_svm$SV) %*%
+                           chinstrap_svm$coefs)
+prj2 <- basis_random(4, 1)
+prj <- orthonormalise(cbind(prj1, prj2))
+
+symbols <- c(3, 20)
+c_pch <- symbols[as.numeric(chinstrap_svm_e$.TYPE[!chinstrap_svm_e$.BOUNDARY])]
+
+render_gif(chinstrap_svm_e[!chinstrap_svm_e$.BOUNDARY,1:4],
+           radial_tour(start=prj, mvar = 1),
+           display_xy(col=chinstrap_svm_e$sex[!chinstrap_svm_e$.BOUNDARY], pch=c_pch),
+           gif_file="gif/chinstrap_rad_bl.gif",
+           apf = 1/30,
+           width=400,
+           height=400,
+           frames=100)
+
+render_gif(chinstrap_svm_e[!chinstrap_svm_e$.BOUNDARY,1:4],
+           radial_tour(start=prj, mvar = 3),
+           display_xy(col=chinstrap_svm_e$sex[!chinstrap_svm_e$.BOUNDARY], pch=c_pch),
+           gif_file="gif/chinstrap_rad_fl.gif",
+           apf = 1/30,
+           width=400,
+           height=400,
+           frames=100)
+
+
+```
 
 ## SVM
 
-Sketches data to compare linear and radial SVM
+::: columns
+::: {.column width="50%"}
+
+Bill length
+
+![](gif/chinstrap_rad_bl.gif)
+
+:::
+
+::: {.column width="50%"}
+
+Flipper length
+
+![](gif/chinstrap_rad_fl.gif)
+
+:::
+:::
+
+## SVM
+
+Sketches data to compare linear and radial SVM - banana vs boomerang
 
 
 ## References
 
-book
-tourr
-slice tour
-classifly
-vote matrix paper
+- book
+- tourr
+- slice tour
+- classifly
+- vote matrix paper
+- mmtour (radial tour)
 
 
 
