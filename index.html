@@ -424,14 +424,13 @@
 <p><br></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tourr)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(palmerpenguins)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>penguins <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(penguins)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">animate_xy</span>(penguins[,<span class="dv">3</span><span class="sc">:</span><span class="dv">6</span>],</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">col=</span>penguins<span class="sc">$</span>species,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">axes=</span><span class="st">"bottomleft"</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">rescale =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">fps=</span><span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"penguins_sub.rda"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">animate_xy</span>(penguins_sub[,<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>],</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">col=</span>penguins_sub<span class="sc">$</span>species,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">axes=</span><span class="st">"bottomleft"</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">rescale =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">fps=</span><span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 
@@ -477,17 +476,26 @@
 </div>
 </div>
 </section>
+<section id="visualizing-classification-models" class="slide level2">
+<h2>Visualizing classification models</h2>
+<p>With these two examples we will explore the potential of tour visualizations to better understand classification models:</p>
+<ul>
+<li>visualize model predictions in the data space to understand classification boundaries</li>
+<li>visualize the votes matrix to understand confusion between classes in the model</li>
+<li>visualize model specific outputs, for example the separating hyperplane from SVM</li>
+</ul>
+</section>
 <section id="visualizing-predictions" class="slide level2">
 <h2>Visualizing predictions</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting the two models</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>p_lda <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">lda</span>(species<span class="sc">~</span>., <span class="at">data=</span>penguins[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span><span class="sc">:</span><span class="dv">6</span>)],</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>p_lda <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">lda</span>(species<span class="sc">~</span>., <span class="at">data=</span>penguins_sub[,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">prior=</span><span class="fu">c</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>))</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>p_tree <span class="ot">&lt;-</span> rpart<span class="sc">::</span><span class="fu">rpart</span>(species<span class="sc">~</span>., <span class="at">data=</span>penguins[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span><span class="sc">:</span><span class="dv">6</span>)])</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>p_tree <span class="ot">&lt;-</span> rpart<span class="sc">::</span><span class="fu">rpart</span>(species<span class="sc">~</span>., <span class="at">data=</span>penguins_sub[,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># using the classifly package to calculate predictions</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>p_lda_boundaries <span class="ot">&lt;-</span> classifly<span class="sc">::</span><span class="fu">explore</span>(p_lda, penguins)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>p_tree_boundaries <span class="ot">&lt;-</span> classifly<span class="sc">::</span><span class="fu">explore</span>(p_tree, penguins)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>p_lda_boundaries <span class="ot">&lt;-</span> classifly<span class="sc">::</span><span class="fu">explore</span>(p_lda, penguins_sub)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>p_tree_boundaries <span class="ot">&lt;-</span> classifly<span class="sc">::</span><span class="fu">explore</span>(p_tree, penguins_sub)</span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># selecting the subset of interest</span></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>p_lda_boundaries <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(</span>
@@ -545,9 +553,9 @@
 <p>With support vector machines we can investigate the <strong>separating hyperplane</strong>. Here we will use the <strong>radial tour</strong> that is rotating a single variable in and out of the projection to understand its contribution to the separation.</p>
 <p>As a simple binary example we fit an SVM to predict if a Chinstrap penguin is male or female.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>chinstrap <span class="ot">&lt;-</span> penguins <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>chinstrap <span class="ot">&lt;-</span> penguins_sub <span class="sc">%&gt;%</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">"Chinstrap"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>species, <span class="sc">-</span>island, <span class="sc">-</span>year) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>species) <span class="sc">%&gt;%</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_if</span>(is.numeric, mulgar<span class="sc">:::</span>scale2)</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>chinstrap_svm <span class="ot">&lt;-</span> e1071<span class="sc">::</span><span class="fu">svm</span>(sex<span class="sc">~</span>., <span class="at">data=</span>chinstrap, <span class="at">scale=</span><span class="cn">FALSE</span>,</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">kernel=</span><span class="st">"linear"</span>, <span class="at">probability=</span><span class="cn">TRUE</span>)</span>
@@ -557,8 +565,8 @@
 
 </div>
 </section>
-<section id="svm-1" class="slide level2">
-<h2>SVM</h2>
+<section id="svm---penguins" class="slide level2">
+<h2>SVM - penguins</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p>Bill length</p>
@@ -569,25 +577,42 @@
 </div>
 </div>
 </section>
-<section id="svm-2" class="slide level2">
-<h2>SVM</h2>
-<p>Sketches data to compare linear and radial SVM - banana vs boomerang</p>
+<section id="svm---banana-vs-boomerang-sketches" class="slide level2">
+<h2>SVM - banana vs boomerang sketches</h2>
+<div class="cell">
+
+</div>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>Linear SVM</p>
+<p><img data-src="gif/s_svm_l.gif"></p>
+</div><div class="column" style="width:50%;">
+<p>Radial SVM</p>
+<p><img data-src="gif/s_svm_r.gif"></p>
+</div>
+</div>
 </section>
 <section id="references" class="slide level2">
 <h2>References</h2>
 <ul>
-<li>book</li>
-<li>tourr</li>
-<li>slice tour</li>
-<li>classifly</li>
-<li>vote matrix paper</li>
-<li>mmtour (radial tour)</li>
+<li><a href="https://dicook.github.io/mulgar_book/">Interactively exploring high-dimensional data and models in R</a>, D. Cook and U. Laa</li>
+<li><a href="https://doi.org/10.1002/sam.11271">Visualizing statistical models: Removing the blindfold</a>, H. Wickham, D. Cook, H. Hofmann</li>
+<li><a href="https://doi.org/10.18637/jss.v040.i02">tourr: An R Package for Exploring Multivariate Data with Projections</a>, H. Wickham, D. Cook, H. Hofmann, A. Buja</li>
+<li><a href="https://doi.org/10.1080/10618600.2020.1777140">A Slice Tour for Finding Hollowness in High-Dimensional Data</a>, U. Laa, D. Cook, G. Valencia</li>
+</ul>
+</section>
+<section id="references-1" class="slide level2">
+<h2>References</h2>
+<ul>
+<li><a href="http://had.co.nz/classifly">Explore Classification Models in High Dimensions</a>, H. Wickham</li>
+<li><a href="https://doi.org/10.1007/s00180-023-01323-x">Interactive Graphics for Visually Diagnosing Forest Classifiers in R</a>, N. da Silva, D. Cook, E.K. Lee</li>
+<li><a href="https://doi.org/10.1080/10618600.2023.2206459">New and Simplified Manual Controls for Projection and Slice Tours, With Application to Exploring Classification Boundaries in High Dimensions</a>, U. Laa, A. Aumann, D. Cook, G. Valencia</li>
 </ul>
 </section>
 <section id="thank-you" class="title-slide slide level1 center">
 <h1>Thank you!</h1>
 <p><br></p>
-<p>This is work in progress, we are happy about your feedback!</p>
+<p>This is work in progress, we are happy about your feedback and suggestions!</p>
 <p><br></p>
 
 <img src="BOKU-logo.svg" class="slide-logo r-stretch"><div class="footer footer-default">

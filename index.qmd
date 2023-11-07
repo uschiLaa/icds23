@@ -51,11 +51,10 @@ I will use two data examples:
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
 library(tourr)
-library(palmerpenguins)
 
-penguins <- na.omit(penguins)
-animate_xy(penguins[,3:6],
-           col=penguins$species,
+load("penguins_sub.rda")
+animate_xy(penguins_sub[,1:4],
+           col=penguins_sub$species,
            axes="bottomleft",
            rescale = TRUE,
            fps=15)
@@ -63,10 +62,10 @@ animate_xy(penguins[,3:6],
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
 
-render_gif(penguins[,3:6],
+render_gif(penguins_sub[,1:4],
            grand_tour(),
            display_xy(
-           col=penguins$species,
+           col=penguins_sub$species,
            axes="bottomleft"),
            gif_file = "gif/penguins.gif",
            rescale = TRUE,
@@ -140,18 +139,26 @@ render_gif(sketches_pca$x[,1:6],
 :::
 :::
 
+## Visualizing classification models
+
+With these two examples we will explore the potential of tour visualizations to better understand classification models:
+
+- visualize model predictions in the data space to understand classification boundaries
+- visualize the votes matrix to understand confusion between classes in the model
+- visualize model specific outputs, for example the separating hyperplane from SVM
+
 ## Visualizing predictions
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
 
 # fitting the two models
-p_lda <- MASS::lda(species~., data=penguins[,c(1,3:6)],
+p_lda <- MASS::lda(species~., data=penguins_sub[,1:5],
                    prior=c(1/3, 1/3, 1/3))
-p_tree <- rpart::rpart(species~., data=penguins[,c(1,3:6)])
+p_tree <- rpart::rpart(species~., data=penguins_sub[,1:5])
 
 # using the classifly package to calculate predictions
-p_lda_boundaries <- classifly::explore(p_lda, penguins)
-p_tree_boundaries <- classifly::explore(p_tree, penguins)
+p_lda_boundaries <- classifly::explore(p_lda, penguins_sub)
+p_tree_boundaries <- classifly::explore(p_tree, penguins_sub)
 
 # selecting the subset of interest
 p_lda_boundaries <- as.data.frame(
@@ -169,7 +176,7 @@ animate_slice(p_tree_boundaries[,1:4],
 
 set.seed(20230329)
 b <- basis_random(4,2)
-pt1 <- save_history(penguins[,3:6], 
+pt1 <- save_history(penguins_sub[,1:4], 
                     max_bases = 100, 
                     start = b)
 
@@ -287,20 +294,20 @@ library(randomForest)
 library(dplyr)
 library(palmerpenguins)
 library(colorspace)
-penguins <- na.omit(penguins)
+load("penguins_sub.rda")
 penguins_rf <- randomForest(species~.,
-                             data=penguins[,c(1,3:6)])
+                             data=penguins_sub[,1:5])
 library(geozoo)
 proj <- t(geozoo::f_helmert(3)[-1,])
 p_rf_v_p <- as.matrix(penguins_rf$votes) %*% proj
 colnames(p_rf_v_p) <- c("x1", "x2")
 p_rf_v_p <- p_rf_v_p %>%
   as.data.frame() %>%
-  mutate(species = penguins$species)
+  mutate(species = penguins_sub$species)
 simp <- simplex(p=2)
 sp <- data.frame(cbind(simp$points), simp$points[c(2,3,1),])
 colnames(sp) <- c("x1", "x2", "x3", "x4")
-sp$species = sort(unique(penguins$species))
+sp$species = sort(unique(penguins_sub$species))
 library(ggthemes)
 ggplot() +
   geom_segment(data=sp, aes(x=x1, y=x2, xend=x3, yend=x4)) +
@@ -330,9 +337,9 @@ As a simple binary example we fit an SVM to predict if a Chinstrap penguin is ma
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=TRUE}
 
-chinstrap <- penguins %>%
+chinstrap <- penguins_sub %>%
   filter(species == "Chinstrap") %>%
-  select(-species, -island, -year) %>%
+  select(-species) %>%
   mutate_if(is.numeric, mulgar:::scale2)
 chinstrap_svm <- e1071::svm(sex~., data=chinstrap, scale=FALSE,
                      kernel="linear", probability=TRUE)
@@ -371,7 +378,7 @@ render_gif(chinstrap_svm_e[!chinstrap_svm_e$.BOUNDARY,1:4],
 
 ```
 
-## SVM
+## SVM - penguins
 
 ::: columns
 ::: {.column width="50%"}
@@ -391,19 +398,98 @@ Flipper length
 :::
 :::
 
-## SVM
+## SVM - banana vs boomerang sketches
 
-Sketches data to compare linear and radial SVM - banana vs boomerang
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+library(e1071)
+library(classifly)
+banana_v_boomerang <- filter(sketches_train,
+                          word %in% c("banana", "boomerang"))
+bvb_pca <- prcomp(banana_v_boomerang[,1:784])
 
+bvb_pc <- as.data.frame(bvb_pca$x[,1:5]) 
+bvb_pc$word <- droplevels(banana_v_boomerang$word)
+
+bvb_pc <- mutate_if(bvb_pc, is.numeric, mulgar:::scale2)
+
+bvb_svm_l <- svm(word ~ ., data = bvb_pc,
+                kernel = "linear", probability = TRUE)
+
+bvb_svm_r <- svm(word ~ ., data = bvb_pc,
+                kernel = "radial", probability = TRUE)
+
+bvb_svm_l_e <- explore(bvb_svm_l, bvb_pc, n = 20000)
+
+#symbols <- c(46, 20)
+#c_pch <- symbols[as.numeric(bvb_svm_l_e$.TYPE[!bvb_svm_l_e$.BOUNDARY])]
+
+animate_xy(bvb_svm_l_e[!bvb_svm_l_e$.BOUNDARY & bvb_svm_l_e$.TYPE == "simulated",1:5], 
+           col=bvb_svm_l_e$word[!bvb_svm_l_e$.BOUNDARY & bvb_svm_l_e$.TYPE == "simulated"])
+
+bvb_svm_r_e <- explore(bvb_svm_r, bvb_pc, n = 20000)
+animate_slice(bvb_svm_r_e[bvb_svm_r_e$.TYPE=="simulated" &
+                            !bvb_svm_r_e$.BOUNDARY,1:5],
+              col=bvb_svm_r_e$word[bvb_svm_r_e$.TYPE=="simulated" &
+                                     !bvb_svm_r_e$.BOUNDARY], v_rel = 7.5)
+
+set.seed(20230329)
+b <- basis_random(5,2)
+st1 <- save_history(bvb_pc[,1:5], 
+                    max_bases = 100, 
+                    start = b)
+
+render_gif(bvb_svm_l_e[!bvb_svm_l_e$.BOUNDARY & bvb_svm_l_e$.TYPE == "simulated",1:5],
+           planned_tour(st1),
+           display_xy(
+           col=bvb_svm_l_e$word[!bvb_svm_l_e$.BOUNDARY & bvb_svm_l_e$.TYPE == "simulated"],
+           axes="bottomleft"),
+           gif_file = "gif/s_svm_l.gif",
+           rescale = TRUE,
+           frames = 100)
+
+render_gif(bvb_svm_r_e[bvb_svm_r_e$.TYPE=="simulated" &
+                            !bvb_svm_r_e$.BOUNDARY,1:5],
+           planned_tour(st1),
+           display_slice(
+           col=bvb_svm_r_e$word[bvb_svm_r_e$.TYPE=="simulated" &
+                                     !bvb_svm_r_e$.BOUNDARY],
+           axes="bottomleft",
+           v_rel = 7.5),
+           gif_file = "gif/s_svm_r.gif",
+           rescale = FALSE,
+           frames = 100)
+
+```
+
+::: columns
+::: {.column width="50%"}
+
+Linear SVM
+
+![](gif/s_svm_l.gif)
+
+:::
+::: {.column width="50%"}
+
+Radial SVM
+
+![](gif/s_svm_r.gif)
+
+:::
+:::
 
 ## References
 
-- book
-- tourr
-- slice tour
-- classifly
-- vote matrix paper
-- mmtour (radial tour)
+- [Interactively exploring high-dimensional data and models in R](https://dicook.github.io/mulgar_book/), D. Cook and U. Laa
+- [Visualizing statistical models: Removing the blindfold](https://doi.org/10.1002/sam.11271), H. Wickham, D. Cook, H. Hofmann
+- [tourr: An R Package for Exploring Multivariate Data with Projections](https://doi.org/10.18637/jss.v040.i02), H. Wickham, D. Cook, H. Hofmann, A. Buja
+- [A Slice Tour for Finding Hollowness in High-Dimensional Data](https://doi.org/10.1080/10618600.2020.1777140), U. Laa, D. Cook, G. Valencia
+
+## References
+
+- [Explore Classification Models in High Dimensions](http://had.co.nz/classifly), H. Wickham
+- [Interactive Graphics for Visually Diagnosing Forest Classifiers in R](https://doi.org/10.1007/s00180-023-01323-x), N. da Silva, D. Cook, E.K. Lee
+- [New and Simplified Manual Controls for Projection and Slice Tours, With Application to Exploring Classification Boundaries in High Dimensions](https://doi.org/10.1080/10618600.2023.2206459), U. Laa, A. Aumann, D. Cook, G. Valencia
 
 
 
@@ -411,7 +497,7 @@ Sketches data to compare linear and radial SVM - banana vs boomerang
 
 <br>
 
-This is work in progress, we are happy about your feedback!
+This is work in progress, we are happy about your feedback and suggestions!
 
 <br>
 
