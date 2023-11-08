@@ -495,11 +495,24 @@ Radial SVM
 
 # Thank you!
 
+::: columns
+::: {.column width="40%"}
+
+![](mulga.png)
+:::
+
+::: {.column width="60%"}
+
+<br>
 <br>
 
-This is work in progress, we are happy about your feedback and suggestions!
+This is work in progress, we are happy about your feedback and suggestions! You can use the [issue page](https://github.com/dicook/mulgar_book/issues) of the GitHub repository to send us your comments.
 
 <br>
+:::
+:::
+
+
 
 
 
